@@ -14,18 +14,27 @@ $app->get('/api/user/create', function(Request $request, Response $response){
     $gender = $genders[array_rand($genders, 1)];
     $name = $faker->name($gender);
     $email = $faker->email;
-    $password = $faker->password;
+    $password = '12345678';
     
     $age = rand(18,100);
 
-    $sql = "INSERT INTO users (email, password, name, gender, age) VALUES('$email', '$password', '$name', '$gender', $age)";
+    $sql = "INSERT INTO users (email, password, name, gender, age) VALUES(:email, :password, :name, :gender, :age)";
 
     try
     {
         $db = new db();
         $db = $db->connect();
 
-        $db->exec($sql);
+        $stmt = $db->prepare($sql);
+
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':password', $password);
+        $stmt->bindParam(':name', $name);
+        $stmt->bindParam(':gender', $gender);
+        $stmt->bindParam(':age', $age);
+
+        $stmt->execute();
+
         $last_id = $db->lastInsertId();
 
         $sql = "SELECT * FROM users WHERE id = $last_id";
@@ -43,9 +52,12 @@ $app->get('/api/user/create', function(Request $request, Response $response){
 });
 
 //Get all profiles
-$app->get('/api/profiles', function(Request $request, Response $response){
+$app->get('/api/profiles/{id}', function(Request $request, Response $response){
 
-    $sql = "SELECT * FROM users";
+    $id = $request->getAttribute('id');
+    $id = ($id) ? $id : null;
+
+    $sql = "SELECT * FROM users WHERE id <> $id";
 
     try
     {
