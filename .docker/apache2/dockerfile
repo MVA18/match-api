@@ -58,6 +58,9 @@ RUN mkdir -p /home/$username/.composer && \
     chown -R www-data:$username /home/$username
 
 COPY . /var/www/html/
+
+ADD .docker/mysql/database.sql /docker-entrypoint-initdb.d
+
 EXPOSE 80
 
 CMD ["/usr/sbin/apache2", "-DFOREGROUND"]
