@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\config\DB;
 use PDO;
 use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -26,7 +27,7 @@ class UserController
 
         try
         {
-            $db = new db();
+            $db = new DB();
             $db = $db->connect();
 
             $stmt = $db->prepare($sql);
@@ -47,7 +48,8 @@ class UserController
             
             $db = null;
 
-            return json_encode($user);
+            $response->getBody()->write(json_encode($user));
+            return $response;
         }
         catch(PDOException $e)
         {
@@ -57,6 +59,27 @@ class UserController
 
     public function profiles(Request $request, Response $response)
     {
-        
+        $id = $request->getAttribute('id');
+        $id = ($id) ? $id : null;
+
+        $sql = "SELECT * FROM users WHERE id <> $id";
+
+        try
+        {
+            $db = new db();
+            $db = $db->connect();
+
+            $stmt = $db->query($sql);
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+            $db = null;
+
+            $response->getBody()->write(json_encode($users));
+            return $response;
+        }
+        catch(PDOException $e)
+        {
+            echo '{"error"}: {"text": '.$e->getMessage().'}';
+        }
     }
 }

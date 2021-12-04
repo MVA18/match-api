@@ -1,6 +1,11 @@
 <?php
 
-class db{
+namespace App\config;
+
+use PDO;
+
+class DB
+{
     // Properties
     private $dbhost = 'match_database';
     private $dbname = 'match_database';
