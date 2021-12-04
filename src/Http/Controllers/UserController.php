@@ -6,11 +6,10 @@ use App\config\DB;
 use PDO;
 use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
 
 class UserController
 {
-    public function create(Request $request, Response $response)
+    public function create(Response $response)
     {
         $faker = \Faker\Factory::create();
 
@@ -23,29 +22,22 @@ class UserController
         
         $age = rand(18,100);
 
-        $sql = "INSERT INTO users (email, password, name, gender, age) VALUES(:email, :password, :name, :gender, :age)";
+        $sql = "INSERT INTO users (email, password, name, gender, age) VALUES('$email', '$password', '$name', '$gender', $age)";
 
         try
         {
             $db = new DB();
             $db = $db->connect();
 
-            $stmt = $db->prepare($sql);
+            $stmt = $db->query($sql);
 
-            $stmt->bindParam(':email', $email);
-            $stmt->bindParam(':password', $password);
-            $stmt->bindParam(':name', $name);
-            $stmt->bindParam(':gender', $gender);
-            $stmt->bindParam(':age', $age);
-
-            $stmt->execute();
+            $db->query($sql);
 
             $last_id = $db->lastInsertId();
-
             $sql = "SELECT * FROM users WHERE id = $last_id";
             $stmt = $db->query($sql);
             $user = $stmt->fetchAll(PDO::FETCH_OBJ);
-            
+
             $db = null;
 
             $response->getBody()->write(json_encode($user));
@@ -57,25 +49,54 @@ class UserController
         }
     }
 
-    public function profiles(Request $request, Response $response)
+    public function profiles(Response $response, $id)
     {
-        $id = $request->getAttribute('id');
-        $id = ($id) ? $id : null;
 
         $sql = "SELECT * FROM users WHERE id <> $id";
 
         try
         {
-            $db = new db();
-            $db = $db->connect();
-
-            $stmt = $db->query($sql);
-            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
-
-            $db = null;
-
+            $users = queryDB($sql);
             $response->getBody()->write(json_encode($users));
             return $response;
+        }
+        catch(PDOException $e)
+        {
+            echo '{"error"}: {"text": '.$e->getMessage().'}';
+        }
+    }
+
+    public function swipe(Response $response, $user_id, $profile_id, $pref)
+    {
+        $check_match = "SELECT * FROM matches WHERE (user_id = $profile_id AND profile_id = $user_id) AND pref = 1";
+
+        $check_if_already_voted_false = "SELECT * FROM matches WHERE user_id = $user_id AND profile_id = $profile_id";
+
+        $setMatch = "INSERT INTO matches (user_id, profile_id, pref) VALUES($user_id, $profile_id, $pref)";
+
+        try
+        {
+            $checked = queryDB($check_if_already_voted_false);
+            if(isset($checked))
+            {
+                $response->getBody()->write(json_encode('already setted preference'));
+                return $response; 
+            }
+
+            if($pref == true)
+            {
+                $match = queryDB($check_match);
+                if(isset($match))
+                {
+                    $response->getBody()->write(json_encode('Matched'));
+                    return $response;
+                }
+            }
+
+            queryDB($setMatch);
+            $response->getBody()->write(json_encode('setted preference for profile'));
+            return $response; 
+
         }
         catch(PDOException $e)
         {
