@@ -1,0 +1,58 @@
+version: '3'
+services:
+#DATABASE 
+  db:
+    image: mva18/mysql:latest
+    container_name: match_database
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./.docker/mysql:/docker-entrypoint-initdb.d
+    ports:
+      - "4307:3306"
+    environment:
+      MYSQL_HOST: ${DB_HOST} 
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: rootp
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD} 
+    networks:
+      - match-network
+#PHPMYADMIN
+  phpmyadmin:
+    image: mva18/phpmyadmin
+    container_name: match_phpmyadmin
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+    ports:
+      - "92:80"
+    depends_on:
+      - db  
+    networks:
+      - match-network
+#C7M APPLICATION
+  app:
+    container_name: match_app
+    image: mva18/c7m_app
+    build:
+      context: .
+      dockerfile: .docker/apache2/dockerfile
+      args:
+        username: ${DB_USERNAME}
+        uid: ${UID}
+    working_dir: /var/www/html
+    environment:
+      - APACHE_RUN_USER=#${UID}
+      - APACHE_RUN_GROUP=#${UID}
+    ports:
+      - "9300:80"
+    volumes:
+      - .:/var/www/html:cached
+    depends_on:
+      - db
+    networks:
+      - match-network
+
+networks: 
+  match-network:
