@@ -12,7 +12,10 @@ $settings = require __DIR__ . '/../src/Config/settings.php';
 $settings($container);
 
 $settings = require __DIR__ . '/../src/Config/db_settings.php';
+require_once(__DIR__ . '/../src/Middleware/TokenAuthMiddleware.php');
+
 $app = SlimAppFactory::create($container);
+$app->add(new TokenAuthMiddleware());
 $capsule = new Illuminate\Database\Capsule\Manager;
 $capsule->addConnection($db_settings);
 $capsule->setAsGlobal();
