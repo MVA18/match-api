@@ -29,22 +29,15 @@ class UserController
 
     public function profiles(Request $request, Response $response, $id)
     {
-        $ageMin = (isset($request->getQueryParams()['ageMin'])) ? $request->getQueryParams()['ageMin'] : 18;
-        $ageMax = (isset($request->getQueryParams()['ageMax'])) ? $request->getQueryParams()['ageMax'] : 100;
+        $ageMin      = (isset($request->getQueryParams()['ageMin'])) ? $request->getQueryParams()['ageMin'] : 18;
+        $ageMax      = (isset($request->getQueryParams()['ageMax'])) ? $request->getQueryParams()['ageMax'] : 100;
 
-        if(isset($ageMin) || isset($ageMax))
-        {
-            $users = DB::table('users')
-            ->where('id', '!=', $id)
-            ->where('age', '<', $ageMax)
-            ->where('age', '>', $ageMin)
-            ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))->get();
-        }
-        else
-        {
-            $users = DB::table('users')->where('id', '!=', $id)
-            ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))->get();
-        }
+        $users = DB::table('users')
+        ->where('id', '!=', $id)
+        ->where('age', '<=', $ageMax)
+        ->where('age', '>=', $ageMin)
+        ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))
+        ->get();
         
         $response->getBody()->write(json_encode($users));
         return $response;
@@ -52,9 +45,8 @@ class UserController
 
     public function swipe(Response $response, $user_id, $profile_id, $pref)
     {
-        $checked = DB::table('matches')
-                    ->where('user_id', '=', $user_id)
-                    ->where('profile_id', '=', $profile_id)->first();
+        $checked = Matches::where('user_id', '=', $user_id)
+                          ->where('profile_id', '=', $profile_id)->first();
 
         if(isset($checked))
         {
@@ -64,13 +56,14 @@ class UserController
 
         if($pref == true)
         {
-            $match = DB::table('matches')
-                    ->where('user_id', '=', $profile_id)
+            $match = Matches::where('user_id', '=', $profile_id)
                     ->where('profile_id', '=', $user_id)
                     ->where('pref', '=', 1)->first();
 
             if(isset($match))
             {
+                $match->matched = 1;
+                $match->save();
                 $response->getBody()->write(json_encode('Matched'));
                 return $response;
             }
