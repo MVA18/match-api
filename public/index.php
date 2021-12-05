@@ -27,7 +27,6 @@ $capsule->addConnection([
   ]);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
-
 $capsule->getContainer()->singleton(
   Illuminate\Contracts\Debug\ExceptionHandler::class,
   AppExceptionsHandler::class

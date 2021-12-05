@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Actions\createUserAction;
-use App\config\DB;
 use App\Data\CreateRandomUserData;
-use PDO;
+use App\Models\User;
+use Illuminate\Database\Capsule\Manager as DB;
 use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
 
@@ -28,20 +28,11 @@ class UserController
 
     public function profiles(Response $response, $id)
     {
-
-        $sql = "SELECT * FROM users u  WHERE u.id <> $id AND
-        u.id NOT IN (SELECT m.profile_id from matches m WHERE m.user_id = $id)";
-
-        try
-        {
-            $users = queryDB($sql);
-            $response->getBody()->write(json_encode($users));
-            return $response;
-        }
-        catch(PDOException $e)
-        {
-            echo '{"error"}: {"text": '.$e->getMessage().'}';
-        }
+        $users = DB::table('users')->where('id', '!=', $id)
+        ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))->get();
+        
+        $response->getBody()->write(json_encode($users));
+        return $response;
     }
 
     public function swipe(Response $response, $user_id, $profile_id, $pref)
