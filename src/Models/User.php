@@ -15,4 +15,15 @@ class User extends Model
     {
         return $this->token == $token;
     }
+
+    public function getByToken($token)
+    {
+        return $this->where('token','=',$token)->first();
+    }
+
+    public function keepTokenAlive()
+    {
+        $this->token_expire = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        $this->save();
+    }
 }

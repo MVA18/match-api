@@ -8,12 +8,14 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class AuthController
 {
-    public function auth(Request $request, Response $response, $email, $password)
+    public function auth(Request $request, Response $response)
     {
-        
+        $email = $request->getParsedBody()['email'];
+        $password = $request->getParsedBody()['password'];
+
         $user = User::all()->where('email', '=', $email)->first();
         
-        if($user->password == $password)
+        if(isset($user) && $user->password == $password)
         {        
             $token = bin2hex(openssl_random_pseudo_bytes(8)); //generate a random token
 
@@ -25,9 +27,12 @@ class AuthController
             ]); 
 
             $user->save();
+
+            $response->getBody()->write(json_encode($user->token));
+            return $response;
         }
     
-        $response->getBody()->write(json_encode($user->token));
-        return $response;
+        $newResponse = $response->withStatus(401);
+        return  $newResponse;
     }
 }
