@@ -35,7 +35,6 @@ class TokenAuthMiddleware
         {
             $tokenAuth = (isset($request->getHeaders()['Authorization'])) ? $request->getHeaders()['Authorization'] : null;
             //If protected url, we check if our token is valid
-            
             if (isset($tokenAuth) && $this->authenticate($tokenAuth)) 
             {
                 $usrObj = new User();

@@ -17,9 +17,9 @@ class AuthController
         
         if(isset($user) && $user->password == $password)
         {        
-            $token = bin2hex(openssl_random_pseudo_bytes(8)); //generate a random token
+            $token = bin2hex(openssl_random_pseudo_bytes(8));
 
-            $tokenExpiration = date('Y-m-d H:i:s', strtotime('+1 hour'));//the expiration date will be in one hour from the current moment
+            $tokenExpiration = date('Y-m-d H:i:s', strtotime('+1 hour'));
             
             $user->update([
                 'token' => $token, 

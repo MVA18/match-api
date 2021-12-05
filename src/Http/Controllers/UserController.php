@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Actions\createUserAction;
 use App\Data\CreateRandomUserData;
+use App\Models\Matches;
 use Illuminate\Database\Capsule\Manager as DB;
-use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
 
 class UserController
@@ -21,7 +21,7 @@ class UserController
     {
         $UserData = new CreateRandomUserData();
         $user = $this->createUserAction->create($UserData->data());
-        
+
         $response->getBody()->write(json_encode($user));
         return $response;
     }
@@ -37,39 +37,38 @@ class UserController
 
     public function swipe(Response $response, $user_id, $profile_id, $pref)
     {
-        $check_match = "SELECT * FROM matches WHERE (user_id = $profile_id AND profile_id = $user_id) AND pref = 1";
+        $checked = DB::table('matches')
+                    ->where('user_id', '=', $user_id)
+                    ->where('profile_id', '=', $profile_id)->first();
 
-        $check_if_already_voted_false = "SELECT * FROM matches WHERE user_id = $user_id AND profile_id = $profile_id";
-
-        $setMatch = "INSERT INTO matches (user_id, profile_id, pref) VALUES($user_id, $profile_id, $pref)";
-
-        try
+        if(isset($checked))
         {
-            $checked = queryDB($check_if_already_voted_false);
-            if(isset($is_false))
-            {
-                $response->getBody()->write(json_encode('already setted preference'));
-                return $response; 
-            }
-
-            if($pref == true)
-            {
-                $match = queryDB($check_match);
-                if(isset($match))
-                {
-                    $response->getBody()->write(json_encode('Matched'));
-                    return $response;
-                }
-            }
-
-            queryDB($setMatch);
-            $response->getBody()->write(json_encode('setted preference for profile'));
+            $response->getBody()->write(json_encode('already setted preference'));
             return $response; 
+        }
 
-        }
-        catch(PDOException $e)
+        if($pref == true)
         {
-            echo '{"error"}: {"text": '.$e->getMessage().'}';
+            $match = DB::table('matches')
+                    ->where('user_id', '=', $profile_id)
+                    ->where('profile_id', '=', $user_id)
+                    ->where('pref', '=', 1)->first();
+
+            if(isset($match))
+            {
+                $response->getBody()->write(json_encode('Matched'));
+                return $response;
+            }
         }
+
+        Matches::create([
+            'user_id'       =>  $user_id,
+            'profile_id'    =>  $profile_id,
+            'pref'          =>  $pref
+        ]);
+
+        $response->getBody()->write(json_encode('setted preference for profile'));
+        return $response; 
+
     }
 }
