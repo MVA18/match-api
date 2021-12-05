@@ -7,7 +7,7 @@ return function(ContainerInterface $container){
         return [
             'displayErrorDetails' => true,
             'logErrorDetails' => true,
-            'logErrors' => true
+            'logErrors' => true,
         ];
     });
 };

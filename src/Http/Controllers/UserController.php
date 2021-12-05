@@ -2,13 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\UserAction;
 use App\config\DB;
+use App\Models\User;
 use PDO;
 use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
 
 class UserController
 {
+    protected $userAction;
+
+    public function __construct(UserAction $userAction)
+    {
+        $this->userAction = $userAction;
+    }
+
+    public function index(Response $response)
+    {
+        $response->getBody()->write(json_encode(User::all()));
+        return $response;
+    }
+        
     public function create(Response $response)
     {
         $faker = \Faker\Factory::create();
@@ -52,7 +67,8 @@ class UserController
     public function profiles(Response $response, $id)
     {
 
-        $sql = "SELECT * FROM users WHERE id <> $id";
+        $sql = "SELECT * FROM users u  WHERE u.id <> $id AND
+        u.id NOT IN (SELECT m.profile_id from matches m WHERE m.user_id = $id)";
 
         try
         {
@@ -77,7 +93,7 @@ class UserController
         try
         {
             $checked = queryDB($check_if_already_voted_false);
-            if(isset($checked))
+            if(isset($is_false))
             {
                 $response->getBody()->write(json_encode('already setted preference'));
                 return $response; 
