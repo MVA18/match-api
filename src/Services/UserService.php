@@ -4,7 +4,7 @@ namespace App\Actions;
 
 use App\Repositories\UserRepository;
 
-class UserAction
+class UserService
 {
    protected $userRepository;
 

@@ -2,66 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\UserAction;
+use App\Actions\createUserAction;
 use App\config\DB;
-use App\Models\User;
 use PDO;
 use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
 
 class UserController
 {
-    protected $userAction;
+    protected $createUserAction;
 
-    public function __construct(UserAction $userAction)
+    public function __construct(createUserAction $createUserAction)
     {
-        $this->userAction = $userAction;
-    }
-
-    public function index(Response $response)
-    {
-        $response->getBody()->write(json_encode(User::all()));
-        return $response;
+        $this->createUserAction = $createUserAction;
     }
         
     public function create(Response $response)
     {
         $faker = \Faker\Factory::create();
-
         $genders = ['male','female'];
 
-        $gender = $genders[array_rand($genders, 1)];
-        $name = $faker->name($gender);
-        $email = $faker->email;
-        $password = '12345678';
-        
-        $age = rand(18,100);
+        $UserData['gender'] = $genders[array_rand($genders, 1)];
+        $UserData['name'] = $faker->name($UserData['gender'] );
+        $UserData['email'] = $faker->email;
+        $UserData['password'] = '12345678';
+        $UserData['age'] = rand(18,100);
 
-        $sql = "INSERT INTO users (email, password, name, gender, age) VALUES('$email', '$password', '$name', '$gender', $age)";
-
-        try
-        {
-            $db = new DB();
-            $db = $db->connect();
-
-            $stmt = $db->query($sql);
-
-            $db->query($sql);
-
-            $last_id = $db->lastInsertId();
-            $sql = "SELECT * FROM users WHERE id = $last_id";
-            $stmt = $db->query($sql);
-            $user = $stmt->fetchAll(PDO::FETCH_OBJ);
-
-            $db = null;
-
-            $response->getBody()->write(json_encode($user));
-            return $response;
-        }
-        catch(PDOException $e)
-        {
-            echo '{"error"}: {"text": '.$e->getMessage().'}';
-        }
+        $user = $this->createUserAction->create($UserData);
+        $response->getBody()->write(json_encode($user));
+        return $response;
     }
 
     public function profiles(Response $response, $id)

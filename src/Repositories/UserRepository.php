@@ -13,6 +13,11 @@ class UserRepository
        $this->userModel = $user;
    }
 
+   public function getAllUsers()
+   {    
+        return User::all();
+   }
+
    public function getUserById($id)
    {
        return $this->userModel->findOrFail($id);

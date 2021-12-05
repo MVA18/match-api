@@ -11,7 +11,5 @@ return function(App $app){
 
     $app->get('/api/profiles/{id}', [UserController::class, 'profiles']);
     $app->get('/api/swipe/{user_id}/{profile_id}/{pref}', [UserController::class, 'swipe']);
-
-    $app->get('/users', [UserController::class, 'index']);
 };
 
