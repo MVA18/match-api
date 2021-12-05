@@ -8,23 +8,13 @@ require __DIR__ . '/../src/Handlers/Exceptions.php';
 
 $container = new Container;
 
-$settings = require __DIR__ . '/../src/settings.php';
-
+$settings = require __DIR__ . '/../src/Config/settings.php';
 $settings($container);
 
+$settings = require __DIR__ . '/../src/Config/db_settings.php';
 $app = SlimAppFactory::create($container);
-
 $capsule = new Illuminate\Database\Capsule\Manager;
-$capsule->addConnection([
-    'driver' => 'mysql',
-    'host' => 'match_database',
-    'port' => '3306',
-    'database' => 'match_database',
-    'username' => 'match_user',
-    'password' => 'match_password',
-    'charset' => 'utf8',
-    'collation' => 'utf8_unicode_ci',
-  ]);
+$capsule->addConnection($db_settings);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
 $capsule->getContainer()->singleton(

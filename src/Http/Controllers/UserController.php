@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\createUserAction;
 use App\Data\CreateRandomUserData;
-use App\Models\User;
 use Illuminate\Database\Capsule\Manager as DB;
 use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -22,6 +21,7 @@ class UserController
     {
         $UserData = new CreateRandomUserData();
         $user = $this->createUserAction->create($UserData->data());
+        
         $response->getBody()->write(json_encode($user));
         return $response;
     }
