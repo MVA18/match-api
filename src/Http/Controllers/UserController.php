@@ -31,13 +31,27 @@ class UserController
     {
         $ageMin      = (isset($request->getQueryParams()['ageMin'])) ? $request->getQueryParams()['ageMin'] : 18;
         $ageMax      = (isset($request->getQueryParams()['ageMax'])) ? $request->getQueryParams()['ageMax'] : 100;
-
-        $users = DB::table('users')
-        ->where('id', '!=', $id)
-        ->where('age', '<=', $ageMax)
-        ->where('age', '>=', $ageMin)
-        ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))
-        ->get();
+        $gender      = (isset($request->getQueryParams()['gender'])) ? $request->getQueryParams()['gender'] : null;
+        
+        if(isset($gender))
+        {
+            $users = DB::table('users')
+            ->where('id', '!=', $id)
+            ->where('age', '<=', $ageMax)
+            ->where('age', '>=', $ageMin)
+            ->where('gender', '=', $gender)
+            ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))
+            ->get();
+        }
+        else
+        {
+            $users = DB::table('users')
+            ->where('id', '!=', $id)
+            ->where('age', '<=', $ageMax)
+            ->where('age', '>=', $ageMin)
+            ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))
+            ->get();
+        }
         
         $response->getBody()->write(json_encode($users));
         return $response;
