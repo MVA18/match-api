@@ -9,11 +9,11 @@ class createUserAction
    public function create($userData)
    {
        $user = User::create([
-            'name'      => $userData['name'],
-            'email'     => $userData['email'],
-            'password'  => $userData['password'],
-            'gender'    => $userData['gender'],
-            'age'       => $userData['age'],
+            'name'      => $userData->name,
+            'email'     => $userData->email,
+            'password'  => $userData->password,
+            'gender'    => $userData->gender,
+            'age'       => $userData->age,
         ]);
 
     return $user;

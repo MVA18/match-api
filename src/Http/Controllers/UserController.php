@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\createUserAction;
 use App\config\DB;
+use App\Data\CreateRandomUserData;
 use PDO;
 use PDOException;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -19,16 +20,8 @@ class UserController
         
     public function create(Response $response)
     {
-        $faker = \Faker\Factory::create();
-        $genders = ['male','female'];
-
-        $UserData['gender'] = $genders[array_rand($genders, 1)];
-        $UserData['name'] = $faker->name($UserData['gender'] );
-        $UserData['email'] = $faker->email;
-        $UserData['password'] = '12345678';
-        $UserData['age'] = rand(18,100);
-
-        $user = $this->createUserAction->create($UserData);
+        $UserData = new CreateRandomUserData();
+        $user = $this->createUserAction->create($UserData->data());
         $response->getBody()->write(json_encode($user));
         return $response;
     }
