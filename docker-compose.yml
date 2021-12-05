@@ -2,7 +2,7 @@ version: '3'
 services:
 #DATABASE 
   db:
-    image: mva18/mysql:latest
+    image: mysql:latest
     container_name: match_database
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     ports:
@@ -19,7 +19,7 @@ services:
       - match-network
 #PHPMYADMIN
   phpmyadmin:
-    image: mva18/phpmyadmin
+    image: phpmyadmin:latest
     container_name: match_phpmyadmin
     links:
       - db
@@ -34,7 +34,6 @@ services:
 #C7M APPLICATION
   app:
     container_name: match_app
-    image: mva18/c7m_app
     build:
       context: .
       dockerfile: .docker/apache2/dockerfile
