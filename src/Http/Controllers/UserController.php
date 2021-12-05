@@ -7,6 +7,7 @@ use App\Data\CreateRandomUserData;
 use App\Models\Matches;
 use Illuminate\Database\Capsule\Manager as DB;
 use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Psr7\Request;
 
 class UserController
 {
@@ -26,10 +27,24 @@ class UserController
         return $response;
     }
 
-    public function profiles(Response $response, $id)
+    public function profiles(Request $request, Response $response, $id)
     {
-        $users = DB::table('users')->where('id', '!=', $id)
-        ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))->get();
+        $ageMin = (isset($request->getQueryParams()['ageMin'])) ? $request->getQueryParams()['ageMin'] : 18;
+        $ageMax = (isset($request->getQueryParams()['ageMax'])) ? $request->getQueryParams()['ageMax'] : 100;
+
+        if(isset($ageMin) || isset($ageMax))
+        {
+            $users = DB::table('users')
+            ->where('id', '!=', $id)
+            ->where('age', '<', $ageMax)
+            ->where('age', '>', $ageMin)
+            ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))->get();
+        }
+        else
+        {
+            $users = DB::table('users')->where('id', '!=', $id)
+            ->whereNotIn('id', DB::table('matches')->select('profile_id')->where('user_id', '=', $id))->get();
+        }
         
         $response->getBody()->write(json_encode($users));
         return $response;
